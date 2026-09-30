@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import { View, Text, TextInput, Pressable, Alert } from "react-native";
 import { StyleSheet } from "react-native";
+import Navbar from "../components/Navbar";
 
 export default function LoginScreen() {
   // 1. États locaux pour les champs du formulaire
