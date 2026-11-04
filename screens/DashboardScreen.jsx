@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { View, Text, FlatList, ActivityIndicator } from "react-native";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
-import { API_URL } from "../services/authService";
-
+import { API_URL } from "../config";
 export default function DashboardScreen() {
     const { user, token } = useAuth();
     const [fraisList, setFraisList] = useState([]);

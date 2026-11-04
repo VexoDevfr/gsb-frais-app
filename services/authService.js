@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-export const API_URL = "https://apigsbfrais.wasmer.app/api/";
+import { API_URL } from "../config";
 export async function signIn (login, pwd) {
 const response = await fetch(`${API_URL}visiteur/auth`, {
     method: "POST",                                   
