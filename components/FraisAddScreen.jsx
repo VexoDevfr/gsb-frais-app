@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import FraisCard from "../components/FraisCard";
 import { useAuth } from "../context/AuthContext";
 import { API_URL } from "../config";
+import FraisForm from "../components/FraisForm";
 export default function FraisAddScreen() {
     const { user, token } = useAuth();
     const [fraisList, setFraisList] = useState([]);
@@ -32,6 +33,7 @@ export default function FraisAddScreen() {
   return (
     <View style={{ flex: 1 }}>
       <Navbar />
+      <FraisForm />
       <Text>Frais de {user?.prenom_visiteur}</Text>
       <FlatList
         data={fraisList}

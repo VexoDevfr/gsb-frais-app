@@ -1,36 +1,49 @@
-import { ActivityIndicator } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import HomeScreen from "./screens/HomeScreen";
-import LoginScreen from "./screens/LoginScreen";
-import DashboardScreen from "./screens/DashboardScreen";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-
-const Stack = createNativeStackNavigator();
-
-function AppNavigator() {
-  const { user, sessionLoading } = useAuth();
-  if (sessionLoading) {
-    return <ActivityIndicator size="large" style={{ flex:1}} />;
-  }
+import navbarStyles from "../styles/navbarStyles";
+import { View, Text, Pressable } from "react-native";
+import { useNavigation } from "@react-navigation/native"
+import { useAuth } from "../context/AuthContext";
+function Navbar() {
+  const navigation = useNavigation();
+  const { user, logoutUser } = useAuth();
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Home" component={HomeScreen} />
-      {user ? (
-        <Stack.Screen name="Dashboard" component={DashboardScreen} />
-      ) : (
-        <Stack.Screen name="Login" component={LoginScreen} />
-      )}
-    </Stack.Navigator>
-  )
-}
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <NavigationContainer>
-        <AppNavigator />
-      </NavigationContainer>
-    </AuthProvider>
+    <View style={navbarStyles.container}>
+      <View style={navbarStyles.group}>
+        <Pressable onPress={() => navigation.navigate("Home")}>
+          <Text style={[navbarStyles.link]}>
+            Accueil
+          </Text>
+        </Pressable>
+        {user && (
+          <>
+            <Pressable onPress={() => navigation.navigate("Dashboard")}>
+              <Text style={navbarStyles.link}>
+                Tableau de bord
+              </Text>
+            </Pressable>
+            <Pressable onPress={() => navigation.navigate("FraisAdd")}>
+              <Text style={navbarStyles.link}>
+                Proposer un frais
+              </Text>
+            </Pressable>
+          </>
+        )}
+      </View>
+      <View style={navbarStyles.group}>
+        {user ? (
+          <Pressable onPress={logoutUser}>
+            <Text style={navbarStyles.link}>
+              Déconnexion
+            </Text>
+          </Pressable>
+        ) : (
+          <Pressable onPress={() => navigation.navigate("Login")}>
+            <Text style={navbarStyles.link}>
+              onnexion
+            </Text>
+          </Pressable>
+        )}
+      </View>
+    </View>
   );
 }
+export default Navbar;

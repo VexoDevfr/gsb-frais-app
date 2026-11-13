@@ -14,12 +14,18 @@ function Navbar() {
                         Accueil
                     </Text>
                 </Pressable>
-                {user && (
-                    <Pressable onPress={() => navigation.navigate("Dashboard")}>
-                        <Text style={navbarStyles.link}>
-                            Tableau de bord
-                        </Text>
-                    </Pressable>
+                {user && ( <>
+                        <Pressable onPress={() => navigation.navigate("Dashboard")}>
+                            <Text style={navbarStyles.link}>
+                                Tableau de bord
+                            </Text>
+                        </Pressable>
+                        <Pressable onPress={() => navigation.navigate("FraisAdd")}>
+                            <Text style={navbarStyles.link}>
+                                Proposer un frais cool
+                            </Text>
+                        </Pressable>
+                    </>
                 )}
             </View>
 
