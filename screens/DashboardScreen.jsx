@@ -1,11 +1,20 @@
-import { useState, useEffect, useCallback } from "react";
-import { View, Text, TextInput, StyleSheet, FlatList, ActivityIndicator, Switch, Alert, Platform } from "react-native";
-import Navbar from "../components/Navbar";
-import FraisCard from "../components/FraisCard";
-import { useAuth } from "../context/AuthContext";
-import { API_URL } from "../config";
+import { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+View,
+Text,
+FlatList,
+TextInput,
+Switch,
+ActivityIndicator,
+StyleSheet,
+Alert,
+Platform
+} from "react-native";
+import FraisCard from "../components/FraisCard";
+import Navbar from "../components/Navbar";
+import { useAuth } from "../context/AuthContext";
+import { getFraisList, deleteFrais } from "../services/fraisService";
 export default function DashboardScreen({ navigation }) {
     const { user, token } = useAuth();
     const [fraisList, setFraisList] = useState([]);
@@ -13,21 +22,19 @@ export default function DashboardScreen({ navigation }) {
     const [loading, setLoading] = useState(true);
     const [filterNonNull, setFilterNonNull] = useState(true);
     const [minMontant, setMinMontant] = useState("");
+    const [error, setError] = useState("");
     useFocusEffect(
         useCallback(() =>{
             const fetchFrais = async () => {
                 try {
-              const response = await fetch(`${API_URL}frais/liste/${user.id_visiteur}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                const data = await response.json();
-                console.log("Statut :", response.status, "Frais :", data);
-                setFraisList(data);
-                setLoading(false);
-            } catch (error) {
-                console.error("Erreur lors du chargement des frais : ", error);
-                setLoading(false);
-            }
+setFraisList(await getFraisList(user.id_visiteur, token));
+setError("");
+} catch (err) {
+console.error("Erreur lors de la récupération des frais :", err);
+setError(err.message);
+} finally {
+setLoading(false);
+}
         };
         fetchFrais();
     }, [user, token])
@@ -35,19 +42,14 @@ export default function DashboardScreen({ navigation }) {
     function handleEdit(id) {
         navigation.navigate("FraisEdit", { id });
     };
-    async function deleteFrais(id) {
-        try {
-            const token = await AsyncStorage.getItem("token");
-            await fetch(`${API_URL}frais/suppr`, {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ id_frais: id }),
-            });
-            setFraisList(fraisList.filter((f) => f.id_frais !== id));
-        } catch (error) {
-            console.error("Erreur lors de la suppression:", error);
-        }
-    }
+    async function removeFrais(id) {
+try {
+await deleteFrais(id, token);
+setFraisList((prev) => prev.filter((f) => f.id_frais !== id));
+} catch (error) {
+Alert.alert("Erreur lors de la suppression :", error.message);
+}
+}
     const handleDelete = (id) => {
     const message = "Êtes-vous sûr de vouloir supprimer cette note de frais ?";
     if (Platform.OS === "web") {
@@ -117,6 +119,7 @@ export default function DashboardScreen({ navigation }) {
                     onChangeText={setMinMontant}
                     style={styles.searchInput}
                 />
+                {error ? <Text style={styles.error}>{error}</Text> : null}
                 <FlatList
                     data={filteredFrais}
                     keyExtractor={(item) => item.id_frais.toString()}
@@ -144,5 +147,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginBottom: 12,
         gap: 8,
+    },
+    error: {
+        color: "red",
+        marginBottom: 12,
     },
 });
