@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { API_URL } from "../config";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-export default function DashboardScreen() {
+export default function DashboardScreen({ navigation }) {
     const { user, token } = useAuth();
     const [fraisList, setFraisList] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -120,7 +120,7 @@ export default function DashboardScreen() {
                 <FlatList
                     data={filteredFrais}
                     keyExtractor={(item) => item.id_frais.toString()}
-                    renderItem={({ item }) => <FraisCard frais={item} onEdit={handleEdit}/>}
+                    renderItem={({ item }) => <FraisCard frais={item} onEdit={handleEdit} onDelete={handleDelete} />}
                 />
             </View>
         </View>
