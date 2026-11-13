@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, TextInput, Pressable } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../config";
 import { fraisFormStyles as styles } from "../styles/fraisFormStyles";
-export default function FraisForm() { 
+export default function FraisForm({ frais = null }) { 
     const [idFrais, setIdFrais] = useState(null);
     const [anneeMois, setAnneeMois] = useState('');
     const [nbJustificatifs, setNbJustificatifs] = useState('');
@@ -12,6 +12,15 @@ export default function FraisForm() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const navigation = useNavigation();
+
+    useEffect(() => {
+        if (frais) {
+            setIdFrais(frais.id_frais);
+            setMontant(frais.montantvalide || "");
+            setAnneeMois(frais.anneemois);
+            setNbJustificatifs(String(frais.nbjustificatifs));
+        }
+    }, [frais]);
     const handleSubmit = async () => {
         setLoading(true);
         setError("");
@@ -25,8 +34,17 @@ export default function FraisForm() {
                     nbjustificatifs: parseInt(nbJustificatifs, 10),
                     id_visiteur: user.id_visiteur,
             };
+let url;
+            if (frais) {
+                fraisData.id_frais = idFrais;
+                fraisData.montantvalide = parseFloat(montant);
+                fraisData.id_etat = frais.id_etat;
+                url = `${API_URL}frais/modif`;
+            } else {
+                url = `${API_URL}frais/ajout`;
+            }
 
-            const response = await fetch(`${API_URL}frais/ajout`, {
+            const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify(fraisData),
@@ -46,7 +64,7 @@ export default function FraisForm() {
     };
     return ( 
     <View style={styles.container}> 
-    <Text style={styles.title}>{frais ? "Modifier la note de frais" : "Saisir une note de frais"}</Text> 
+    <Text style={styles.formTitle}>{frais ? "Modifier la note de frais" : "Saisir une note de frais"}</Text> 
     <View> 
         <Text>Année-mois :</Text> 
         <TextInput 

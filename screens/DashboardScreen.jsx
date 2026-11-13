@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
-import { View, Text, TextInput, StyleSheet, FlatList, ActivityIndicator, Switch } from "react-native";
+import { useState, useEffect, useCallback } from "react";
+import { View, Text, TextInput, StyleSheet, FlatList, ActivityIndicator, Switch, Alert, Platform } from "react-native";
 import Navbar from "../components/Navbar";
 import FraisCard from "../components/FraisCard";
 import { useAuth } from "../context/AuthContext";
 import { API_URL } from "../config";
+import { useFocusEffect } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function DashboardScreen() {
     const { user, token } = useAuth();
     const [fraisList, setFraisList] = useState([]);
@@ -11,9 +13,10 @@ export default function DashboardScreen() {
     const [loading, setLoading] = useState(true);
     const [filterNonNull, setFilterNonNull] = useState(true);
     const [minMontant, setMinMontant] = useState("");
-    useEffect(() => {
-        const fetchFrais = async () => {
-            try {
+    useFocusEffect(
+        useCallback(() =>{
+            const fetchFrais = async () => {
+                try {
               const response = await fetch(`${API_URL}frais/liste/${user.id_visiteur}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
@@ -27,7 +30,43 @@ export default function DashboardScreen() {
             }
         };
         fetchFrais();
-    }, []);
+    }, [user, token])
+    );
+    function handleEdit(id) {
+        navigation.navigate("FraisEdit", { id });
+    };
+    async function deleteFrais(id) {
+        try {
+            const token = await AsyncStorage.getItem("token");
+            await fetch(`${API_URL}frais/suppr`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ id_frais: id }),
+            });
+            setFraisList(fraisList.filter((f) => f.id_frais !== id));
+        } catch (error) {
+            console.error("Erreur lors de la suppression:", error);
+        }
+    }
+    const handleDelete = (id) => {
+    const message = "Êtes-vous sûr de vouloir supprimer cette note de frais ?";
+    if (Platform.OS === "web") {
+        if (window.confirm(message)) deleteFrais(id);
+        } else {
+            Alert.alert(
+            "Confirmation",
+                message,
+                [
+                    { text: "Annuler", style: "cancel" },
+                    {
+                        text: "Supprimer",
+                        style: "destructive",
+                        onPress: () => deleteFrais(id),
+                    },
+                ]
+            );
+        }
+    };
     if (loading) {
       return <ActivityIndicator size="large" style={{ flex: 1 }} />;
     }
@@ -81,7 +120,7 @@ export default function DashboardScreen() {
                 <FlatList
                     data={filteredFrais}
                     keyExtractor={(item) => item.id_frais.toString()}
-                    renderItem={({ item }) => <FraisCard frais={item} />}
+                    renderItem={({ item }) => <FraisCard frais={item} onEdit={handleEdit}/>}
                 />
             </View>
         </View>
